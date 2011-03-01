@@ -34,15 +34,11 @@ double findMedian(vector<double> scores)
 
   sort(scores.begin(), scores.end());
 
-  if (size  % 2 == 0)
-  {
+  if (size  % 2 == 0) {
       median = (scores[size / 2 - 1] + scores[size / 2]) / 2;
-  }
-  else 
-  {
+  } else {
       median = scores[size / 2];
   }
-
   return median;
 }
 
@@ -286,10 +282,9 @@ int main(int argc, char** argv)
 		Mat homography = getHomography( culled );
 
 		double bsize = 19.00;
-		double finc = 20/19;
 		vector<Point2f> verts;
-		for (double x=0.0; x<bsize; x+=finc)
-			for (double y=0.0; y<bsize; y+=finc) {
+		for (double x=0.0; x<bsize; x++)
+			for (double y=0.0; y<bsize; y++) {
 				Point2f p = Point2f(x,y);
 				verts.push_back( p);
 				cout << "src point:" << x  << endl;
