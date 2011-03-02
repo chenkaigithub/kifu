@@ -66,9 +66,7 @@ vector<Point2f> cullSegments( vector<Point2f> &hullPoints, Mat &img)
 		if (cosine < 0.999) {
 		       circle(img, b, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
 			devs.push_back(b);
-		//cout << "added: " << cosine << endl;
 		}
-		//cout << "cosine is:" << cosine << endl;
 	}
 	return devs;
 }
@@ -98,6 +96,33 @@ vector<Point2f> cHull( vector<vector<Point> > &squares )
 	return hullPoints;
 }
 
+double dist(Point a, Point b) {
+	hypot (b.x - a.x, b.y - a.y);
+}
+
+double maxSide(vector<Point> sq) {
+
+	vector<Point> csq = sq;
+	csq.push_back(sq[0]);
+	double m= 0.0;
+	for (size_t i = 1; i < sq.size(); i++) {
+		double d = dist(csq[i-1],csq[i]);
+		m= MAX(m,d);
+	}
+	return m;
+}
+
+double minSide(vector<Point> sq) {
+
+        vector<Point> csq = sq;
+        csq.push_back(sq[0]);
+        double m= 100.00;
+        for (size_t i = 1; i < sq.size(); i++) {
+                m= MIN (m, dist(csq[i-1],csq[i]));
+        }
+        return m;
+}
+
 
 vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<double> &areas, double average, double top_thresh, double bottom_thresh )
 {
@@ -105,9 +130,13 @@ vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<do
         for( size_t i = 0; i < squares.size(); i++ ) {
 		double area = areas[i];
 		double error =  area  - average;
-		if ((error < top_thresh ) && (error > bottom_thresh))  {
+		double sideDiff = minSide(squares[i]) / maxSide(squares[i]);
+		cout << "side diff:" << sideDiff << endl;
+		if ((error < top_thresh ) && (error > bottom_thresh) && sideDiff >.5)  {
 			out.push_back( squares[i] );
 		}
+
+		
 	}
 	return out;
 }
@@ -174,22 +203,24 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares, vector<doub
 		double area = fabs(contourArea(Mat(approx)));
 
                 if( approx.size() == 4 &&
-                    area > 1000 &&
+                    area > 150 &&
                     isContourConvex(Mat(approx)) )
                 {
                     double maxCosine = 0;
+                    double minCosine = 2;
 
                     for( int j = 2; j < 5; j++ )
                     {
                         // find the maximum cosine of the angle between joint edges
                         double cosine = fabs(angle(approx[j%4], approx[j-2], approx[j-1]));
                         maxCosine = MAX(maxCosine, cosine);
+                        minCosine = MIN(minCosine, cosine);
                     }
 
                     // if cosines of all angles are small
                     // (all angles are ~90 degree) then write quandrange
                     // vertices to resultant sequence
-                    if( maxCosine < 0.3 ) {
+                    if( maxCosine < 3.0 ) {
 		
                         squares.push_back(approx);
 			areas.push_back(area);
@@ -265,11 +296,16 @@ int main(int argc, char** argv)
         
 		findSquares(image, squares, area);
 
+
 		double medianArea = findMedian(area);
 		double stddev = findStdDev(area,medianArea);
 
 		//filter out the squares that are more than 3 std deviations bigger or 2 deviations smaller than the median
 		vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev*3, stddev * -2.0);
+		drawSquares(image, goodsquares);
+
+		imshow("goban", image);
+		waitKey();
 
 		//now find the convex hull of the points in the remaining squares.
 		vector<Point2f> hull = cHull(goodsquares);
@@ -295,21 +331,14 @@ int main(int argc, char** argv)
 
 		perspectiveTransform( src, dst, homography  );
 
-		//cout << "number of output points:" << dst.size().height << endl;
-		//cout << dst << endl;
 		for( size_t i = 0; i < dst.size().height; i++ ) {
 			float x = dst.at<float>(i,0);
 			float y = dst.at<float>(i,1);
 			Point2f p = Point2f(x,y);
-			//cout << "point:" <<p << endl;	
 			circle(image, Point(x,y), 20, Scalar( 255,255,0), CV_FILLED, CV_AA);
 		}
 
 
-		const Point2f *p = &culled[0];
-		int n = (int)culled.size();
-		//cout << "number of points in the convex hull:" << n << endl;
-		//polylines(image, &p, &n, 1, true, Scalar(255,255,0), 3, CV_AA);
 		imshow("goban", image);
 		imwrite("goodsqares.jpg", image );
 
