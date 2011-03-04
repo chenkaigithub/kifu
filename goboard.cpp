@@ -131,7 +131,6 @@ vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<do
 		double area = areas[i];
 		double error =  area  - average;
 		double sideDiff = minSide(squares[i]) / maxSide(squares[i]);
-		cout << "side diff:" << sideDiff << endl;
 		if ((error < top_thresh ) && (error > bottom_thresh) && sideDiff >.5)  {
 			out.push_back( squares[i] );
 		}
@@ -233,19 +232,6 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares, vector<doub
 }
 
 
-void logSquares( const vector<vector<Point> >& squares ) 
-{
-	for( size_t i = 0; i < squares.size(); i++ )
-	{
-	cout << "square:";
-		for( size_t j = 0; j < squares[i].size(); j++ ) {
-			const Point* p = &squares[i][j];
-			cout << *p << endl;
-		}
-	cout << endl;
-	}
-	
-}
 
 // the function draws all the squares in the image
 void drawSquares( Mat& image, const vector<vector<Point> >& squares )
@@ -273,7 +259,6 @@ Mat getHomography(vector<Point2f> corners ) {
 	for (int i=0; i<4; i++ ) {
 		Point2f p1 = imageCorners[i];
 		Point2f p2 = idealCorners[i];
-		cout << "ideal: " << p2 << " image: " << p1 << endl;
 	}
 
 	Mat trans = getPerspectiveTransform(idealCorners, imageCorners);
@@ -281,69 +266,65 @@ Mat getHomography(vector<Point2f> corners ) {
 }
 
 
-int main(int argc, char** argv)
+vector<Point> findIntersections(Mat &image)
 {
- const char* filename = argc >= 2 ? argv[1] : "pic1.png";
-
-   vector<vector<Point> > squares;
-    vector<double> area;
+	vector<vector<Point> > squares;
+	vector<double> area;
     
-        Mat image = imread(filename, 1);
-        if( image.empty() )
-        {
-            cout << "Couldn't load " << filename << endl;
-        } else {
-        
-		findSquares(image, squares, area);
+	findSquares(image, squares, area);
 
+	double medianArea = findMedian(area);
+	double stddev = findStdDev(area,medianArea);
 
-		double medianArea = findMedian(area);
-		double stddev = findStdDev(area,medianArea);
+	//filter out the squares that are more than 3 std deviations bigger or 2 deviations smaller than the median
+	vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev*3, stddev * -2.0);
 
-		//filter out the squares that are more than 3 std deviations bigger or 2 deviations smaller than the median
-		vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev*3, stddev * -2.0);
-		drawSquares(image, goodsquares);
+	//now find the convex hull of the points in the remaining squares.
+	vector<Point2f> hull = cHull(goodsquares);
+	vector<Point2f> culled = cullSegments(hull,image);
 
-		imshow("goban", image);
-		waitKey();
+	Mat homography = getHomography( culled );
 
-		//now find the convex hull of the points in the remaining squares.
-		vector<Point2f> hull = cHull(goodsquares);
-		vector<Point2f> culled = cullSegments(hull,image);
-
-
-		cout << "number of culled points in hull:" << culled.size() << endl;
-		cout << "culled points in hull:" << culled << endl;
-
-		Mat homography = getHomography( culled );
-
-		double bsize = 19.00;
-		vector<Point2f> verts;
-		for (double x=0.0; x<bsize; x++)
-			for (double y=0.0; y<bsize; y++) {
-				Point2f p = Point2f(x,y);
-				verts.push_back( p);
-				cout << "src point:" << x  << endl;
-			}
-
-		Mat src = Mat(verts);
-		Mat dst;
-
-		perspectiveTransform( src, dst, homography  );
-
-		for( size_t i = 0; i < dst.size().height; i++ ) {
-			float x = dst.at<float>(i,0);
-			float y = dst.at<float>(i,1);
+	double bsize = 19.00;
+	vector<Point2f> verts;
+	for (double x=0.0; x<bsize; x++)
+		for (double y=0.0; y<bsize; y++) {
 			Point2f p = Point2f(x,y);
-			circle(image, Point(x,y), 20, Scalar( 255,255,0), CV_FILLED, CV_AA);
+			verts.push_back( p);
 		}
 
+	Mat src = Mat(verts);
+	Mat dst;
 
-		imshow("goban", image);
-		imwrite("goodsqares.jpg", image );
+	perspectiveTransform( src, dst, homography  );
 
-		int c = waitKey();
+	vector<Point> newVerts;
+	for( size_t i = 0; i < dst.size().height; i++ ) {
+		int x = dst.at<float>(i,0);
+		int y = dst.at<float>(i,1);
+		Point p = Point(x,y);
+		newVerts.push_back(p);
 	}
 
-    return 0;
+	return newVerts;
+}
+
+
+int main(int argc, char** argv)
+{
+	const char* filename = argc >= 2 ? argv[1] : "pic1.png";
+
+	Mat image = imread(filename, 1);
+	if( image.empty() )
+	{
+	    cout << "Couldn't load " << filename << endl;
+	} else {
+		vector<Point> points = findIntersections(image);
+		for ( size_t i=0; i<points.size(); i++) {
+			Point p = points[i];
+			 circle(image, p, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
+		}
+		imshow("goban",image);
+		waitKey();
+	}
 }
