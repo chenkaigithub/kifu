@@ -16,3 +16,7 @@ To find all the points in a completely automated fashion, here's my recipe:
 5. compute a homography matrix (H) using the four corner points that correspond to the four corners of an ideal go board.
 6. use H to transform all the vertices of the ideal go board into the image coordinates
 7. Profit!
+
+
+If you find this program useful, please shoot me an email at ludflu@gmail.com
+
