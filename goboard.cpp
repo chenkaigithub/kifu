@@ -312,7 +312,7 @@ vector<Point> findIntersections(Mat &image)
 
 int main(int argc, char** argv)
 {
-	const char* filename = argc >= 2 ? argv[1] : "pic1.png";
+	const char* filename = argc >= 2 ? argv[1] : "gb.jpg";
 
 	Mat image = imread(filename, 1);
 	if( image.empty() )
