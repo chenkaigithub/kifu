@@ -2,7 +2,7 @@ The goal of this project is to automatically produce an SGF game record from an 
 
 
 <center>
-<img src="goodsquares.jpg" alt="1">
+<img src="http://dl.dropbox.com/u/7391714/goodsq.jpg" alt="1">
 </center>
 
 
