@@ -2,7 +2,7 @@ The goal of this project is to automatically produce an SGF game record from an 
 
 
 <center>
-<img src="https://github.com/imatix/gitdown/raw/master/goodsquares.jpg" alt="1">
+<img src="http://github.com/imatix/gitdown/raw/master/goodsquares.jpg" alt="1">
 </center>
 
 
