@@ -1,6 +1,6 @@
 The goal of this project is to automatically produce an SGF game record from an image stream.
 
-![output](/ludflu/kifu/goodsquares.jpg "look at the blue dots")
+![output](/ludflu/kifu/raw/master/goodsquares.jpg "look at the blue dots")
 
 
 "kifu" is the Japanese go term for game record. http://senseis.xmp.net/?GameRecord
