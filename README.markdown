@@ -8,6 +8,8 @@ The goal of this project is to automatically produce an SGF game record from an 
 
 "kifu" is the Japanese go term for game record. http://senseis.xmp.net/?GameRecord
 
+The program detected the intersections and superimposed all the blue dots.
+
 This software is licenced under the GNU General Public License (GPL)
 
 OpenCV is awesome!!
