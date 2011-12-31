@@ -3,12 +3,15 @@
 #include <iostream>
 
 #include "precomp.hpp"
+#include <deque>
+#include <numeric>
 
 
 using namespace pgr_camera;
 using namespace cv;
+using namespace std;
 
-
+deque<double> moving;
 
 IplImage* lastimg;
 int c = 0;
@@ -39,7 +42,16 @@ void getImage(FlyCapture2::Image *img)
         
         double n = cvNorm(cvimg,lastimg, CV_RELATIVE_L2 );
         lastimg = cvimg;
+        moving.push_back(n);
+        if (moving.size() > 160) {
+                moving.pop_front();
+        }       
+        
+        double sum = std::accumulate(moving.begin(), moving.end(),0.0) ;
+        double avg = sum / (double) moving.size();
+
         cout << "diff: " << n << endl;
+        cout << "avg: " << avg << endl;
         c++;
 }
 
