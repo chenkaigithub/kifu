@@ -3,8 +3,8 @@ LIBS=-L/usr/local/lib -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_m
 
 INC = 
 
-pgrread : pgrread.o pgr_camera.o
-	g++ -o pgrread pgrread.o pgr_camera.o ${LIBS} 
+pgrread : pgrread.o pgr_camera.o compare.o
+	g++ -o pgrread pgrread.o compare.o pgr_camera.o ${LIBS} 
 
 pgrread.o : pgrread.cpp pgr_camera.cpp pgr_camera.h
 	g++ -c pgrread.cpp 
@@ -12,6 +12,9 @@ pgrread.o : pgrread.cpp pgr_camera.cpp pgr_camera.h
 pgr_camera.o : pgr_camera.cpp pgr_camera.h
 	g++ -c pgr_camera.cpp 
 
+compare.o : compare.cpp compare.h
+	g++ -c compare.cpp
+
 clean : 
-	rm pgrread.o pgr_camera.o pgrread
+	rm *.o pgrread
 

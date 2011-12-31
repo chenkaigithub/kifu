@@ -10,15 +10,15 @@ using namespace cv;
 
 
 
-IplImage* lastImg;
-
+IplImage* lastimg;
+int c = 0;
 
 
 void getImage(FlyCapture2::Image *img) 
 {
         std::cout << "entered image callback" << std::endl;
         FlyCapture2::Error error;
-        error = img->Save("/home/ludflu/Dropbox/flycap/pgr_camera/test.pgm" );
+        //error = img->Save("test.pgm" );
 
 
         IplImage* cvimg;
@@ -36,7 +36,11 @@ void getImage(FlyCapture2::Image *img)
         memcpy( cvimg->imageData,  
         img->GetData(),  
         data_size ); 
-
+        
+        double n = cvNorm(cvimg,lastimg, CV_RELATIVE_L2 );
+        lastimg = cvimg;
+        cout << "diff: " << n << endl;
+        c++;
 }
 
 int main( int argc, const char* argv[] ) {
@@ -46,25 +50,8 @@ int main( int argc, const char* argv[] ) {
         usleep(10000);
         camera->start();
         std::cout << "start capture" << std::endl;
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
-        usleep(10000);
+
+        while (c<100000);
         camera->stop();
         std::cout << "stop capture" << std::endl;
 }
