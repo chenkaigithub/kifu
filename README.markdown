@@ -28,3 +28,8 @@ To find all the points in a completely automated fashion, here's my recipe:
 
 If you find this program useful, please shoot me an email at ludflu@gmail.com
 
+Using the Point Grey Camera
+The go board measures 17x18 inches
+With a 16mm lens, 91 inches above the ground, we just barely get the whole board in the frame. 
+
+I've ordered a 12mm lens, so we'll see how that works.
