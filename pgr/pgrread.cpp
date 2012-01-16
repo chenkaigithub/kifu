@@ -26,6 +26,8 @@ const int ST_INIT = 0;
 const int ST_WAIT_MVMT = 1;
 const int ST_WAIT_STILL = 2;
 
+const double THRESH= 1.75;
+
 int state = ST_INIT;
 
 void saveit(int frame) {
@@ -54,6 +56,7 @@ void state_machine() {
 			saveit(frame);
                         cout << "stillness!" << endl;
                         cout << "frame:" <<frame << endl;
+			cout<<(char)7<<endl;
                 }
         }
 
@@ -69,8 +72,10 @@ void stats() {
         avg = sum / (double) moving.size();
         c++;
         if ((thresh == 0.0) && (c >START_FRAMES)) {
-                thresh = avg * 1.5;
+                thresh = avg * THRESH;
                 state = ST_WAIT_MVMT;
+		cout<<(char)7<<endl;
+	        saveit(frame);
         }
 
         state_machine();
@@ -88,8 +93,6 @@ void getImage(FlyCapture2::Image *img)
 
         unsigned int data_size = img->GetDataSize();
 
-
-	//release old cvimg before you do this - right now you're leaking memory!!!! JCS TODO
         cvimg = cvCreateImage( cvSize( col, row),  IPL_DEPTH_8U,  1 );
 
         // Copy FlyCapture2 image into OpenCV struct  
@@ -98,6 +101,11 @@ void getImage(FlyCapture2::Image *img)
         data_size ); 
         
         double n = cvNorm(cvimg,lastimg, CV_RELATIVE_L2 );
+
+	//release old cvimg before you do this - right now you're leaking memory!!!! JCS TODO
+	cvReleaseImage(&lastimg);
+
+
         lastimg = cvimg;
         moving.push_front(n);
         if (moving.size() > WINDOW_SIZE ) {
@@ -123,6 +131,10 @@ vector<double> decay( int count) {
 int main( int argc, const char* argv[] ) {
 
         weights = decay(WINDOW_SIZE);
+
+	lastimg = cvCreateImage( cvSize( 640, 480),  IPL_DEPTH_8U,  1 );
+
+
 
         Camera *camera = new Camera();
         camera->setFrameCallback(getImage);
