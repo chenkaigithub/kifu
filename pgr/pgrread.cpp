@@ -6,7 +6,6 @@
 #include <deque>
 #include <numeric>
 
-
 using namespace pgr_camera;
 using namespace cv;
 using namespace std;
@@ -29,6 +28,14 @@ const int ST_WAIT_STILL = 2;
 
 int state = ST_INIT;
 
+void saveit(int frame) {
+  cout << "saving image" << std::endl;
+  ostringstream out;
+  out << "test" << frame << ".jpg";
+  cvSaveImage(out.str().c_str() ,lastimg);
+}
+
+
 void state_machine() {
 
         if (avg > thresh) {
@@ -44,6 +51,7 @@ void state_machine() {
                         // and take a picture now.
                         state = ST_WAIT_MVMT;
                         frame++;
+			saveit(frame);
                         cout << "stillness!" << endl;
                         cout << "frame:" <<frame << endl;
                 }
@@ -69,12 +77,9 @@ void stats() {
 }
 
 
+
 void getImage(FlyCapture2::Image *img) 
 {
-        //std::cout << "entered image callback" << std::endl;
-        FlyCapture2::Error error;
-        //error = img->Save("test.pgm" );
-
 
         IplImage* cvimg;
 
@@ -83,6 +88,8 @@ void getImage(FlyCapture2::Image *img)
 
         unsigned int data_size = img->GetDataSize();
 
+
+	//release old cvimg before you do this - right now you're leaking memory!!!! JCS TODO
         cvimg = cvCreateImage( cvSize( col, row),  IPL_DEPTH_8U,  1 );
 
         // Copy FlyCapture2 image into OpenCV struct  
@@ -125,6 +132,7 @@ int main( int argc, const char* argv[] ) {
         std::cout << "start capture" << std::endl;
 
         while (1) {
+        usleep(1000);
         }
 
         camera->stop();
