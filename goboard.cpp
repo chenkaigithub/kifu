@@ -64,7 +64,7 @@ vector<Point2f> cullSegments( vector<Point2f> &hullPoints, Mat &img)
 
 		double cosine = fabs(angle(b,a,c));
 		if (cosine < 0.999) {
-		       circle(img, b, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
+		       //circle(img, b, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
 			devs.push_back(b);
 		}
 	}
@@ -124,18 +124,17 @@ double minSide(vector<Point> sq) {
 }
 
 
-vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<double> &areas, double average, double top_thresh, double bottom_thresh )
+vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<double> &areas, double average, double thresh )
 {
 	vector<vector<Point> > out;
         for( size_t i = 0; i < squares.size(); i++ ) {
 		double area = areas[i];
-		double error =  area  - average;
-		double sideDiff = minSide(squares[i]) / maxSide(squares[i]);
-		if ((error < top_thresh ) && (error > bottom_thresh) && sideDiff >.5)  {
+		double error =  fabs( area - average );
+		double sideDiff = maxSide(squares[i]) / minSide(squares[i]);
+		if ((error < thresh) || (sideDiff <.25)) {
 			out.push_back( squares[i] );
+                        cout << "area:" << area << endl;
 		}
-
-		
 	}
 	return out;
 }
@@ -220,11 +219,9 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares, vector<doub
                     // (all angles are ~90 degree) then write quandrange
                     // vertices to resultant sequence
                     if( maxCosine < 3.0 ) {
-		
                         squares.push_back(approx);
 			areas.push_back(area);
-		
-		}
+		    }
                 }
             }
         }
@@ -240,7 +237,8 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
     {
         const Point* p = &squares[i][0];
         int n = (int)squares[i].size();
-        polylines(image, &p, &n, 1, true, Scalar(0,255,0), 3, CV_AA);
+        cout << "sides:" << n << endl;
+        polylines(image, &p, &n, 1, true, Scalar(0,255,0), 1, CV_AA);
     }
 }
 
@@ -277,7 +275,8 @@ vector<Point> findIntersections(Mat &image)
 	double stddev = findStdDev(area,medianArea);
 
 	//filter out the squares that are more than 3 std deviations bigger or 2 deviations smaller than the median
-	vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev*3, stddev * -2.0);
+	vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev *2.0 );
+        drawSquares(image,goodsquares);
 
 	//now find the convex hull of the points in the remaining squares.
 	vector<Point2f> hull = cHull(goodsquares);
@@ -322,7 +321,7 @@ int main(int argc, char** argv)
 		vector<Point> points = findIntersections(image);
 		for ( size_t i=0; i<points.size(); i++) {
 			Point p = points[i];
-			 circle(image, p, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
+			 //circle(image, p, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
 		}
 		imshow("goban",image);
 		waitKey();
