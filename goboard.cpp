@@ -64,7 +64,6 @@ vector<Point2f> cullSegments( vector<Point2f> &hullPoints, Mat &img)
 
 		double cosine = fabs(angle(b,a,c));
 		if (cosine < 0.999) {
-		       //circle(img, b, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
 			devs.push_back(b);
 		}
 	}
@@ -130,8 +129,8 @@ vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<do
         for( size_t i = 0; i < squares.size(); i++ ) {
 		double area = areas[i];
 		double error =  fabs( area - average );
-		double sideDiff = maxSide(squares[i]) / minSide(squares[i]);
-		if ((error < thresh) || (sideDiff <.25)) {
+		double sideDiff = minSide(squares[i]) / maxSide(squares[i]) ;
+		if ((error < thresh) && (sideDiff >0.80)) {
 			out.push_back( squares[i] );
                         cout << "area:" << area << endl;
 		}
@@ -237,7 +236,7 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
     {
         const Point* p = &squares[i][0];
         int n = (int)squares[i].size();
-        cout << "sides:" << n << endl;
+        //cout << "sides:" << n << endl;
         polylines(image, &p, &n, 1, true, Scalar(0,255,0), 1, CV_AA);
     }
 }
@@ -274,13 +273,16 @@ vector<Point> findIntersections(Mat &image)
 	double medianArea = findMedian(area);
 	double stddev = findStdDev(area,medianArea);
 
-	//filter out the squares that are more than 3 std deviations bigger or 2 deviations smaller than the median
+	//filter out the squares that are more than 2 std deviations out
 	vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev *2.0 );
         drawSquares(image,goodsquares);
 
 	//now find the convex hull of the points in the remaining squares.
 	vector<Point2f> hull = cHull(goodsquares);
 	vector<Point2f> culled = cullSegments(hull,image);
+
+
+
 
 	Mat homography = getHomography( culled );
 
@@ -302,6 +304,7 @@ vector<Point> findIntersections(Mat &image)
 		int x = dst.at<float>(i,0);
 		int y = dst.at<float>(i,1);
 		Point p = Point(x,y);
+		circle(image, p, 5, Scalar( 255,0,0), CV_FILLED, CV_AA);
 		newVerts.push_back(p);
 	}
 
