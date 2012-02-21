@@ -27,4 +27,11 @@ double minSide(vector<Point> sq) ;
 
 vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<double> &areas, double average, double thresh );
 
+vector<Point> convertToPoints(const vector <Point2f> fp) ;
+
+Mat preprocess(const Mat &image);
+
+void drawSquare(Mat &image, const vector<Point>& sq)  ;
+
+void drawSquares( Mat& image, const vector<vector<Point> >& squares ) ;
 

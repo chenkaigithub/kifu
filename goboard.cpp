@@ -149,19 +149,6 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares, vector<doub
 }
 
 
-
-// the function draws all the squares in the image
-void drawSquares( Mat& image, const vector<vector<Point> >& squares )
-{
-    for( size_t i = 0; i < squares.size(); i++ )
-    {
-        const Point* p = &squares[i][0];
-        int n = (int)squares[i].size();
-        //cout << "sides:" << n << endl;
-        polylines(image, &p, &n, 1, true, Scalar(0,255,0), 1, CV_AA);
-    }
-}
-
 Mat getHomography(vector<Point2f> corners ) {
 
 	vector <Point2f> iCorners;
@@ -183,7 +170,6 @@ Mat getHomography(vector<Point2f> corners ) {
 	return trans;
 }
 
-
 vector<Point> findIntersections(Mat &image)
 {
 	vector<vector<Point> > squares;
@@ -197,11 +183,13 @@ vector<Point> findIntersections(Mat &image)
 	//filter out the squares that are more than 2 std deviations out
 	vector<vector<Point> > goodsquares = filterSquares(squares,area,medianArea,stddev *2.0 );
         drawSquares(image,goodsquares);
+       // drawSquares(image,squares);
 
 	//now find the convex hull of the points in the remaining squares.
 	vector<Point2f> hull = cHull(goodsquares);
 	vector<Point2f> culled = cullSegments(hull,image);
 
+        drawSquare(image,convertToPoints(culled));
 	Mat homography = getHomography( culled );
 
 	double bsize = 19.00;
@@ -222,15 +210,11 @@ vector<Point> findIntersections(Mat &image)
 		int x = dst.at<float>(i,0);
 		int y = dst.at<float>(i,1);
 		Point p = Point(x,y);
-		circle(image, p, 5, Scalar( 255,0,0), CV_FILLED, CV_AA);
+		//circle(image, p, 5, Scalar( 255,0,0), CV_FILLED, CV_AA);
 		newVerts.push_back(p);
 	}
 
 	return newVerts;
-}
-
-
-Mat &preprocess(const Mat &image) {
 }
 
 
@@ -239,16 +223,14 @@ int main(int argc, char** argv)
 	const char* filename = argc >= 2 ? argv[1] : "gb.jpg";
 
 	Mat image = imread(filename, 1);
+    Mat fixed = preprocess(image);
+
 	if( image.empty() )
 	{
 	    cout << "Couldn't load " << filename << endl;
 	} else {
-		vector<Point> points = findIntersections(image);
-		for ( size_t i=0; i<points.size(); i++) {
-			Point p = points[i];
-			 //circle(image, p, 20, Scalar( 255,0,0), CV_FILLED, CV_AA);
-		}
-		imshow("goban",image);
+		vector<Point> points = findIntersections(fixed);
+		imshow("goban",fixed);
 		waitKey();
 	}
 }

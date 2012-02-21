@@ -100,4 +100,55 @@ vector<vector<Point> > filterSquares( vector<vector<Point> >& squares, vector<do
 	return out;
 }
 
+vector<Point> convertToPoints(const vector <Point2f> fp) {
+
+    vector <Point> pts;
+    for (int i = 0; i<fp.size(); i++) {
+                Point2f p = fp[i];
+                Point newp = Point(p.x,p.y);
+                pts.push_back(newp) ;
+    }
+    return pts;
+}
+
+Mat preprocess(const Mat &image) {
+
+
+    //Mat fix = createImage( Size(image.cols,image.rows), cv.IPL_DEPTH_8U, 1);
+    Mat fix(image);
+
+    cvtColor(image,fix,CV_BGR2GRAY);
+
+    int delta = 5; //dont know what this should be
+    adaptiveThreshold(fix, fix, 255.0, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,9,delta);
+
+    // down-scale and upscale the image to filter out the noise
+    Mat pyr, timg, smooth(image) ;
+    pyrDown(fix, pyr, Size(image.cols/2, image.rows/2));
+    pyrUp(pyr, fix, image.size());
+
+    medianBlur(fix, smooth,5 );
+    adaptiveThreshold(smooth, smooth, 255.0, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,9,delta);
+
+    
+    cvtColor(smooth,fix,CV_GRAY2BGR);
+    return fix;
+}
+
+void drawSquare(Mat &image, const vector<Point>& sq) {
+     const Point* p = &sq[0];
+     int n = (int)sq.size();
+     polylines(image, &p, &n, 1, true, Scalar(0,255,0), 1, CV_AA);
+ }
+
+
+ // the function draws all the squares in the image
+ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
+ {
+         for( size_t i = 0; i < squares.size(); i++ )
+         {
+           drawSquare(image,squares[i]);
+         }
+ }
+
 
