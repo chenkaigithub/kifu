@@ -113,21 +113,21 @@ vector<Point> convertToPoints(const vector <Point2f> fp) {
 
 Mat preprocess(const Mat &image) {
 
-
-    //Mat fix = createImage( Size(image.cols,image.rows), cv.IPL_DEPTH_8U, 1);
     Mat fix(image);
 
     cvtColor(image,fix,CV_BGR2GRAY);
 
-    int delta = 5; //dont know what this should be
-    adaptiveThreshold(fix, fix, 255.0, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,9,delta);
+    int delta = 5 ; //  Constant subtracted from the mean or weighted mean
+                    // http://opencv.itseez.com/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold
+    int neighborhood = 21;
+    adaptiveThreshold(fix, fix, 255.0, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,neighborhood,delta);
 
     // down-scale and upscale the image to filter out the noise
     Mat pyr, timg, smooth(image) ;
     pyrDown(fix, pyr, Size(image.cols/2, image.rows/2));
     pyrUp(pyr, fix, image.size());
 
-    medianBlur(fix, smooth,5 );
+    medianBlur(fix, smooth,1 );
     adaptiveThreshold(smooth, smooth, 255.0, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,9,delta);
 
     
